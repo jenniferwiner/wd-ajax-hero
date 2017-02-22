@@ -17,7 +17,9 @@
         'data-tooltip': movie.title
       });
 
-      $title.tooltip({ delay: 50 }).text(movie.title);
+      $title.tooltip({
+        delay: 50
+      }).text(movie.title);
 
       const $poster = $('<img>').addClass('poster');
 
@@ -55,6 +57,51 @@
       $('.modal-trigger').leanModal();
     }
   };
+  // click search button
 
-  // ADD YOUR CODE HERE
+  $('button').click(function(event) {
+    // get user search
+    let userSearch = $('#search').val();
+
+    if (userSearch !== '') {
+      $.ajax({
+        method: 'GET',
+        url: `http://omdbapi.com/?s=${userSearch}`,
+        dataType: 'json',
+        success: function(data) {
+
+          let currentPlot = '';
+          for (let item of data.Search) {
+            let movieData = {
+              id: item.imdbID,
+              poster: item.Poster,
+              title: item.Title,
+              year: item.Year
+            };
+
+            $.ajax({
+              method: 'GET',
+              url: `http://omdbapi.com/?i=${item.imdbID}&plot=full`,
+              dataType: 'json',
+              success: function(dataPlots) {
+                currentPlot = dataPlots.Plot;
+                movieData['plot'] = currentPlot;
+                movies.push(movieData);
+              },
+              error: function() {
+                console.log('error');
+              }
+            });
+            // console.log(movieData);
+          }
+          renderMovies();
+          movies.length = 0;
+        },
+        error: function() {
+          console.log('error');
+        }
+      });
+      event.preventDefault();
+    }
+  });
 })();
